@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static class Get extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            OkHttpUtils okHttpUtils = new OkHttpUtils();
+            OkHttpUtils okHttpUtils = OkHttpUtils.getInstance();
             try {
                 String response = okHttpUtils.get("http://111.231.71.150/sunshinebox/home_page/GetIndexData.php");
                 Log.i(TAG, response);
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            OkHttpUtils okHttpUtils = new OkHttpUtils();
+            OkHttpUtils okHttpUtils = OkHttpUtils.getInstance();
             try {
                 String response = okHttpUtils.post("http://111.231.71.150/sunshinebox/home_page/GetIndexData.php", "course_type=music");
                 Log.i(TAG, response);

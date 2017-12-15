@@ -13,6 +13,19 @@ import okhttp3.Response;
  */
 
 class OkHttpUtils {
+
+    private static OkHttpUtils okHttpUtils;
+
+    public static OkHttpUtils getInstance() {
+        if (okHttpUtils == null) {
+            okHttpUtils = new OkHttpUtils();
+        }
+        return okHttpUtils;
+    }
+
+    private OkHttpUtils() {
+    }
+
     private OkHttpClient client = new OkHttpClient();
 
     //若要提交表单请求请用此MediaType
