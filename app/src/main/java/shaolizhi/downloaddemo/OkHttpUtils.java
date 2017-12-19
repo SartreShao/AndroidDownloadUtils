@@ -16,7 +16,7 @@ class OkHttpUtils {
 
     private static OkHttpUtils okHttpUtils;
 
-    public static OkHttpUtils getInstance() {
+    static OkHttpUtils getInstance() {
         if (okHttpUtils == null) {
             okHttpUtils = new OkHttpUtils();
         }
@@ -33,6 +33,7 @@ class OkHttpUtils {
     //若要提交JSON的话请用此MediaType
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    //同步get请求
     String get(String url) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
@@ -42,7 +43,7 @@ class OkHttpUtils {
         return response.body().string();
     }
 
-
+    //同步post请求
     String post(String url, String content) throws IOException {
         RequestBody body = RequestBody.create(FORM, content);
         Request request = new Request.Builder()
