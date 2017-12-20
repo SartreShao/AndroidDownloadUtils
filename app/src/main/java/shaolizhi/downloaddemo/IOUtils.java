@@ -13,14 +13,10 @@ class IOUtils {
 
     private static final String FILE_NAME = Environment.getExternalStorageDirectory().getPath();
 
-    private static File directory = new File(FILE_NAME,"FUCK");
+    private static File directory = new File(FILE_NAME, "FUCK");
 
     static Boolean createDirectory() {
-        if (!directory.exists()) {
-            return directory.mkdirs();
-        } else {
-            return true;
-        }
+        return directory.exists() || directory.mkdirs();
     }
 
     static Boolean createFile(String fileName) throws IOException {

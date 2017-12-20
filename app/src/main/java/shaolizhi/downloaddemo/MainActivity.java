@@ -2,110 +2,101 @@ package shaolizhi.downloaddemo;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    Boolean fileFlag;
-    Boolean dirFlag;
+
+    ApiService apiService;
+
+    String url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new Get().execute();
-        new Post().execute();
+
         IOUtils.createDirectory();
         try {
             IOUtils.createFile("SHIT");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Retrofit.Builder builder = new Retrofit.Builder()
-                .baseUrl("")
-                .addConverterFactory(GsonConverterFactory.create());
 
-        Retrofit retrofit = builder.build();
+        new Get().execute();
+        new Post().execute();
+        url = "http://sunshinebox-1255613827.file.myqcloud.com/%E5%84%BF%E6%AD%8C/%E5%B0%8F%E8%9D%8C%E8%9A%AA/01%E5%B0%8F%E8%9D%8C%E8%9A%AA.mp4";
 
-        String url = "";
+        apiService = ServiceGenerator.createService(ApiService.class);
 
-        ApiService apiService = retrofit.create(ApiService.class);
-
-        Call<ResponseBody> call = apiService.downloadFileWithDynamicUrl(url);
-
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-            }
-        });
-
-//        StringBuilder log = new StringBuilder();
-//        String inPath = getInnerSDCardPath();
-//        log.append("内置SD卡路径：" + inPath + "\r\n");
-//
-//        List<String> extPaths = getExtSDCardPath();
-//        for (String path : extPaths) {
-//            log.append("外置SD卡路径：" + path + "\r\n");
-//        }
-//        Log.i("FUCK", log.toString());
+        downloadFile.execute();
     }
 
-//    /**
-//     * 获取内置SD卡路径
-//     * @return
-//     */
-//    public String getInnerSDCardPath() {
-//        return Environment.getExternalStorageDirectory().getPath();
-//    }
-//
-//    /**
-//     * 获取外置SD卡路径
-//     * @return  应该就一条记录或空
-//     */
-//    public List<String> getExtSDCardPath()
-//    {
-//        List<String> lResult = new ArrayList<>();
-//        try {
-//            Runtime rt = Runtime.getRuntime();
-//            Process proc = rt.exec("mount");
-//            InputStream is = proc.getInputStream();
-//            InputStreamReader isr = new InputStreamReader(is);
-//            BufferedReader br = new BufferedReader(isr);
-//            String line;
-//            while ((line = br.readLine()) != null) {
-//                if (line.contains("extSdCard"))
-//                {
-//                    String [] arr = line.split(" ");
-//                    String path = arr[1];
-//                    File file = new File(path);
-//                    if (file.isDirectory())
-//                    {
-//                        lResult.add(path);
-//                    }
-//                }
-//            }
-//            isr.close();
-//        } catch (Exception e) {
-//        }
-//        return lResult;
-//    }
+    private static boolean writeResponseBodyToDisk(ResponseBody body) {
+        try {
+            // todo change the file location/name according to your needs
+            File futureStudioIconFile = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "fuck.mp4");
+
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+
+            try {
+                byte[] fileReader = new byte[4096];
+
+                long fileSize = body.contentLength();
+                long fileSizeDownloaded = 0;
+
+                inputStream = body.byteStream();
+                outputStream = new FileOutputStream(futureStudioIconFile);
+
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read == -1) {
+                        break;
+                    }
+
+                    outputStream.write(fileReader, 0, read);
+
+                    fileSizeDownloaded += read;
+
+                    Log.d(TAG, "file download: " + fileSizeDownloaded + " of " + fileSize);
+                }
+
+                outputStream.flush();
+
+                return true;
+            } catch (IOException e) {
+                return false;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     private static class Get extends AsyncTask<Void, Void, Void> {
         @Override
@@ -131,6 +122,45 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, response);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private final DownloadFile downloadFile = new DownloadFile(this);
+
+    private static class DownloadFile extends AsyncTask<Void, Long, Void> {
+
+        private WeakReference<MainActivity> mainActivityWeakReference;
+
+        DownloadFile(MainActivity activity) {
+            this.mainActivityWeakReference = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            MainActivity mainActivity = mainActivityWeakReference.get();
+            if (mainActivity != null) {
+                Call<ResponseBody> call = mainActivity.apiService.downloadFileWithDynamicUrl(mainActivity.url);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            Log.e(TAG, "server contacted and has file");
+
+                            boolean writtenToDisk = writeResponseBodyToDisk(response.body());
+
+                            Log.d(TAG, "file download was a success?" + writtenToDisk);
+                        } else {
+                            Log.d(TAG, "server contact failed");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+
+                    }
+                });
             }
             return null;
         }
