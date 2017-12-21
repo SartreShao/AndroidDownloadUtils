@@ -46,6 +46,16 @@ public class MainActivity extends AppCompatActivity {
         apiService = ServiceGenerator.createService(ApiService.class);
 
         downloadFile.execute();
+
+//        Runnable runnable = new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        };
+//
+//        Thread thread = new Thread(runnable);
+//        thread.start();
     }
 
     private static boolean writeResponseBodyToDisk(ResponseBody body) {
@@ -71,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     if (read == -1) {
                         break;
                     }
-
+                    Log.e(TAG, "read:" + String.valueOf(read));
                     outputStream.write(fileReader, 0, read);
 
                     fileSizeDownloaded += read;
