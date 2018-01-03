@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DownloadDemo</string>
+    <string name="main_act_string1">播放视频</string>
 </resources>
